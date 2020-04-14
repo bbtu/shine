@@ -1,0 +1,141 @@
+#include<thread>   
+#include<cstdlib>
+#include<ctime>
+#include<mutex>
+#include<condition_variable>
+#include<iostream> 
+#include<queue>
+#include<string>
+using namespace std;
+ 
+struct Patient {
+	int id; //病人id号
+	int level; //代表病情严重情况
+	int arrive_time; //代表到来的时间 
+	int take_time; //代表需要就诊的时间 
+	Patient(int i, int l, double a, double t)  //构造函数
+		:id(i), level(l), arrive_time(a), take_time(t) {}
+	Patient() { id = 0; take_time = 0; } //默认构造函数
+	bool operator<(const Patient& p)const {
+		return level < p.level; //优先级从大到小
+	}
+};
+ 
+ 
+struct Docter {
+	int id;  //医生编号
+	string name; //医生名字
+	int cnt;  //看过的病人
+	int time1; //医生工作时间 
+	Docter(int i, const string& n)
+		:id(i), name(n) {
+		cnt = 0;
+		time1=0;
+	}
+	Docter() { id = 0; cnt = 0; name = "于怀渤";time1=0 ;}
+};
+ 
+mutex mtx;
+condition_variable produce, consume;//等待者线程 
+priority_queue<Patient> q; //直接使用了STL的优先队列
+int maxSize = 50;  //假设该科室最大容纳50人
+volatile int ok = 1;
+int cnt = 0;
+int time1=0;
+/*（生产者）病人随机产生器*/
+void PatientGenerator() {
+	srand(time(NULL));
+	int id = 1;
+	int level;
+	int take_time;
+	int time = 0;
+	int interval = 0;
+	while (time < 30000) {
+		//模拟等待病人到来的时间
+		this_thread::sleep_for(chrono::milliseconds(interval));//阻塞当前线程rel_time的时间（时间定义） 
+		interval = rand() % 500;  //假设75min内出现一个病人
+		level = rand() % 7;   //随机产生优先级
+		take_time = rand() % 4000; //随机产生病人看病的时间
+		time += interval;
+		++cnt;
+		time1+=take_time; 
+		unique_lock<mutex> lck(mtx);
+		//如果科室满了，那么阻塞，直到未满
+		produce.wait(lck, [] {return q.size() != maxSize; });
+ 
+		cout << "-> 来了一位病人 " << "id:" << id << " 当前时间:" << time << " ";
+		//入队
+		q.push(Patient(++id, level, time, take_time));
+		cout << "队列还有" << q.size() << "位病人.\n";
+		//唤醒消费者线程
+		consume.notify_all();
+	}
+	cout << "--------程序为了结束，从此时起病人不再增加--------\n";
+	ok = 0;
+}
+ 
+/*（消费者）医生处理病人的线程*/
+void DocterProcess(Docter & d) {
+ 
+	Patient temp;
+	int time = 0;
+	
+	while (ok || !q.empty()) {
+ 
+		this_thread::sleep_for(chrono::milliseconds(temp.take_time));
+		cout << "医生[" << d.id << "]给" << temp.id << "号病人看完了病，" << "目前空闲\n";
+		//模拟看病所花费的时间
+ 
+		unique_lock<mutex> lck(mtx);
+		//等到非空才进行下一步操作，否则线程阻塞
+		consume.wait(lck, [] {return (q.size() != 0) || !ok; });
+ 
+		//取出队列中头一个病人
+		if (!q.empty()) {
+			temp = q.top();
+			q.pop();
+			++d.cnt;
+			d.time1+=temp.take_time;
+			cout << "医生[" << d.id << "]开始给" << temp.id << "号病人看病，医生[" << d.id << "]进入忙碌状态 ";
+			cout << "队列还有" << q.size() << "位病人.\n";
+ 
+			time += temp.take_time;
+			//唤醒生产者线程
+			produce.notify_all();
+		}
+ 
+	}
+}
+ 
+int main()
+{
+	int mm;
+	cin>>mm;//输入医生个数 
+	const int m=mm; //医生个数
+	int n; //病人个数
+ 
+	Docter docters[m];
+	for (int i = 0; i < m; ++i) {
+		docters[i] = Docter(i, "x");
+	}
+ 
+	thread pt(PatientGenerator); //病人线程
+ 
+	thread pd[m]; //医生线程
+	for (int i = 0; i < m; ++i) {
+		pd[i] = thread(DocterProcess, std::ref(docters[i]));
+	}
+ 
+	pt.join();
+	for (int i = 0; i < m; ++i)
+		pd[i].join();
+ 
+	cout << "今天一共来了" << cnt << "位病人.\n";
+	for (int i = 0; i < m; ++i)
+		cout << "医生[" << i << "]今天看了" << docters[i].cnt << "位病人."<<"给病人看病共花费"<<docters[i].time1<<"时间.\n";
+ 
+	cout << "程序正常结束\n";
+	system("pause");
+	return 0;
+}
+
