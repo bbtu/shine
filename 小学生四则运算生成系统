@@ -1,0 +1,312 @@
+#include<iostream>
+#include <cstdlib>
+#include <time.h>
+#include<malloc.h>
+#include <fstream>
+struct number
+{
+	char mm[5];
+	float nn[3];
+	float end1;
+}number;
+
+
+int num=0;//最大数
+int jishu = 0;
+int num1=0;//题数
+int flag = 0;//小数
+int add1 = 0;
+int sub1 = 0;
+int mul1 = 0;
+int div1 = 0;
+int and1 = 0;//是否开启括号
+int file = 0;//是否输出到文件
+int ans = 0;//是否输出答案
+int leng = 0;
+float ans1[100];
+using namespace std;
+void menu();
+int rand_1(int a, int b);//生成随机数参与运算
+float rand_2(int a, int b);//生成随机浮点数
+float add();
+float sub();
+float mul();
+float div();
+void all_1();
+float suiji();
+void putt();
+void putt1();
+int main()
+{
+	ofstream fs, fs1;
+	menu();
+	fs.open("习题.txt");
+	fs1.open("答案.txt");
+	for (int i = 0; i < num1; i++)
+	{
+		
+		all_1();
+		if (and1 == 1)
+			putt();
+		else
+			putt1;
+		ans1[i] = number.end1;
+		jishu++;
+	}
+	system("pause");
+}
+void menu()
+{	
+	int m;
+	cout << "欢迎使用小学生四则运算出题程序" << endl;
+	cout << "请输入出题数量" << endl;
+	cin >> num1;
+	cout << "请输入最大运算数值" << endl;
+	cin >> num;
+	cout << "是否启用加法？ 是 1 ，否 2" << endl;
+	cin >> m;
+	add1 = m;
+	cout << "是否启用减法？ 是 1 ，否 2" << endl;
+	cin >> m;
+	sub1 = m;
+	cout << "是否启用乘法？ 是 1 ，否 2" << endl;
+	cin >> m;
+	mul1 = m;
+	cout << "是否启用除法？ 是 1 ，否 2" << endl;
+	cin >> m;
+	div1 = m;
+	cout << "是否启用小数？ 是 1 ，否 2" << endl;
+	cin >> m;
+	flag = m;
+	cout << "是否启用括号？ 是 1 ，否 2" << endl;
+	cin >> m;
+	and1 = m;
+	/*cout << "输出到文件还是屏幕？ 文件 a ，屏幕 b";
+	cin >> file;
+	cout << "是否输出答案？ 是 a ，否 b";
+	cin >> ans;*/
+}
+
+void all_1()
+{
+	
+		int m;
+			number.mm[0] = '(';
+			number.mm[1] = ')';
+			number.mm[4] = '=';
+			number.end1 = suiji();
+			m = rand_1(3, jishu);
+			if(flag==1)
+				number.nn[2] = rand_2(num, jishu);
+			else
+				number.nn[2] = rand_1(num, jishu);
+			if (m == 0)
+			{
+				number.mm[3] = '+';
+				number.end1 += number.nn[2];
+				
+				return;
+			}
+			if (m == 1)
+			{
+				number.mm[3] = '-';
+				
+				number.end1 -= number.nn[2];
+				
+				return;
+			}
+			if (m == 2)
+			{
+				number.mm[3] = '*';
+				
+				number.end1 *= number.nn[2];
+				
+				return;
+			}
+			if (m == 3)
+			{
+				number.mm[3] = '/';
+				
+				number.end1 /= number.nn[2];
+				
+				return;
+			}
+	
+
+	
+}
+void putt1()
+{
+	{
+		cout << number.nn[0] << number.mm[2] << number.nn[1] << number.mm[3] << number.nn[3] << number.mm[4] << endl;
+	}
+
+}
+void putt()
+{
+	if (rand_1(10,jishu)>5)
+	{
+		cout << number.mm[0] << number.nn[0] << number.mm[2] << number.nn[1] << number.mm[1] << number.mm[3] << number.nn[3] << number.mm[4] << endl;
+	}
+	else
+	{
+		cout << number.nn[3] << number.mm[3] << number.mm[0] << number.nn[0] << number.mm[2] << number.nn[1] << number.mm[1] << number.mm[4] << endl;
+	}
+}
+void putt3()
+{
+	if (rand_1(10, jishu) > 5)
+	{
+		fs << number.mm[0] << number.nn[0] << number.mm[2] << number.nn[1] << number.mm[1] << number.mm[3] << number.nn[3] << number.mm[4] << endl;
+	}
+	else
+	{
+		fs << number.nn[3] << number.mm[3] << number.mm[0] << number.nn[0] << number.mm[2] << number.nn[1] << number.mm[1] << number.mm[4] << endl;
+	}
+}
+void putt4()
+{
+	{
+		cout << number.nn[0] << number.mm[2] << number.nn[1] << number.mm[3] << number.nn[3] << number.mm[4] << endl;
+	}
+
+}
+float add()
+{
+	float b, c;
+	if (flag== 1)
+	{
+		b = rand_2(num, jishu);
+		jishu++;
+		c = rand_2(num, jishu);
+		
+	}
+	else
+	{
+		b = rand_1(num, jishu);
+		jishu++;
+		c = rand_1(num, jishu);
+	}
+	number.nn[0] = b;
+	number.mm[2] = '+';
+	number.nn[1] = c;
+	return b + c;
+}
+float sub()
+{
+	float b, c;
+	if (flag == 1)
+	{
+		b = rand_2(num, jishu);
+		jishu++;
+		c = rand_2(num, jishu);
+
+	}
+	else
+	{
+		b = rand_1(num, jishu);
+		jishu++;
+		c = rand_1(num, jishu);
+	}
+	number.nn[0] = b;
+	number.mm[2] = '-';
+	number.nn[1] = c;
+	return b - c;
+}
+float mul()
+{
+	float b, c;
+	if (flag == 1)
+	{
+		b = rand_2(num, jishu);
+		jishu++;
+		c = rand_2(num, jishu);
+
+	}
+	else
+	{
+		b = rand_1(num, jishu);
+		jishu++;
+		c = rand_1(num, jishu);
+	}
+	number.nn[0] = b;
+	number.mm[2] = '*';
+	number.nn[1] = c;
+	return b * c;
+}
+float div()
+{
+	float b, c;
+	if (flag == 1)
+	{
+		b = rand_2(num, jishu);
+		jishu++;
+		c = rand_2(num, jishu);
+
+	}
+	else
+	{
+		b = rand_1(num, jishu);
+		jishu++;
+		c = rand_1(num, jishu);
+	}
+	number.nn[0] = b;
+	number.mm[2] = '/';
+	number.nn[1] = c;
+	return b / c;
+}
+float suiji()
+{
+	int n;
+	float m;
+	while (1)
+	{
+		n =rand_1(4, jishu);
+		if (n == 0 || n == 1)
+		{
+			m=add();
+			if (add1 == 0)
+				continue;
+			else
+				return m;
+		}
+		if (n == 2)
+		{
+			m = sub();
+			if (sub1 == 0)
+				continue;
+			else
+				return m;
+		}
+		if (n == 3)
+		{
+			m = mul();
+			if (mul1 == 0)
+				continue;
+			else
+				return m;
+		}
+		if (n == 4)
+		{
+			m = div();
+			if (div1 == 0)
+				continue;
+			else
+				return m;
+		}
+	}
+
+}
+
+int rand_1(int a, int b)
+{
+	
+	srand(b);
+		return rand() % a;
+}
+float rand_2(int a,int b)
+{
+
+	srand(b);
+	return (rand()%(a*10))/10.00f;
+}
